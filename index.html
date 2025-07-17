@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HHL数字媒体作品集</title>
+    <script src="https://cdn.tailwindcss.com/3.3.3"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700,800&family=Roboto:wght@400;500&display=swap');
+        
+        /* === 全局与基础样式 === */
+        html {
+            scroll-behavior: smooth;
+            /* 隐藏滚动条 for Firefox */
+            scrollbar-width: none;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0A0A0A;
+            color: #FFFFFF;
+            overflow-x: hidden;
+            /* 隐藏滚动条 for Webkit browsers */
+        }
+        body::-webkit-scrollbar {
+            display: none;
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+        }
+        
+        .neon-text { text-shadow: 0 0 8px currentColor; }
+        .neon-border { box-shadow: 0 0 8px currentColor; }
+        .section {
+            min-height: 100vh;
+            padding: 80px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* === 导航栏样式 === */
+        .nav-item { position: relative; }
+        .nav-item::after {
+            content: ''; position: absolute; bottom: -5px; left: 0;
+            width: 0; height: 2px; background-color: #00FFFF; transition: width 0.3s ease;
+        }
+        .nav-item:hover::after, .nav-item.active::after { width: 100%; }
+        
+        .progress-bar {
+            height: 4px; background: linear-gradient(90deg, #00FFFF, #9D00FF);
+            position: fixed; top: 0; left: 0; z-index: 1000;
+        }
+        
+        /* === 交互与其它样式 === */
+        .project-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.3);
+        }
+        input:focus, textarea:focus { box-shadow: 0 0 0 2px #00FFFF; }
+        .btn-submit:hover { background: linear-gradient(45deg, #00FFFF, #9D00FF); }
+        
+        @media (max-width: 768px) {
+            .section { padding: 60px 15px; }
+        }
+
+        /* === 项目历程时间轴样式 === */
+        .journey-timeline { position: relative; max-width: 700px; margin: 0 auto; }
+        .journey-timeline::after {
+            content: ''; position: absolute; width: 4px; background: linear-gradient(to bottom, #00FFFF, #9D00FF, #222);
+            top: 0; bottom: 0; left: 30px; margin-left: -2px; box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        .journey-item { padding: 10px 40px; padding-left: 80px; position: relative; width: 100%; }
+        .journey-item::after {
+            content: ''; position: absolute; width: 25px; height: 25px; left: 30px;
+            background-color: #0A0A0A; border: 4px solid #00FFFF; top: 15px;
+            border-radius: 50%; z-index: 1; margin-left: -12.5px; box-shadow: 0 0 15px #00FFFF;
+        }
+        .journey-content {
+            padding: 20px 30px; background-color: #1A1A1A; border-left: 4px solid #00FFFF;
+            position: relative; border-radius: 6px; transition: all 0.3s ease;
+        }
+        .journey-content:hover {
+            transform: translateX(10px);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.3);
+        }
+
+        /* === 预加载动画样式 === */
+        #preloader { background-color: #0A0A0A; }
+        
+        /* === 故障艺术与标题动画 === */
+        .glitch-text {
+            position: relative;
+            background: linear-gradient(90deg, #00FFFF, #FF00FF, #00FFFF);
+            background-size: 200% auto; color: transparent;
+            -webkit-background-clip: text; background-clip: text;
+            animation: color-breathing 8s ease-in-out infinite, glitch-skew 1s infinite linear alternate-reverse;
+        }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text); position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%; background: #0A0A0A;
+        }
+        .glitch-text::before { left: 2px; text-shadow: -2px 0 #FF00FF; animation: glitch-anim 2.5s infinite linear alternate-reverse; }
+        .glitch-text::after { left: -2px; text-shadow: -2px 0 #00FFFF, 2px 2px #FF00FF; animation: glitch-anim-2 2.5s infinite linear alternate-reverse; }
+        @keyframes color-breathing { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        @keyframes glitch-skew { 0% { transform: skew(0deg); } 100% { transform: skew(0deg); } 50% { transform: skew(1deg); } }
+        /* Glitch keyframes (condensed) */
+        @keyframes glitch-anim{0%{clip-path:polygon(0 43%,100% 43%,100% 45%,0 45%)}5%{clip-path:polygon(0 12%,100% 12%,100% 14%,0 14%)}10%{clip-path:polygon(0 89%,100% 89%,100% 91%,0 91%)}15%{clip-path:polygon(0 33%,100% 33%,100% 35%,0 35%)}20%{clip-path:polygon(0 67%,100% 67%,100% 69%,0 69%)}25%{clip-path:polygon(0 22%,100% 22%,100% 24%,0 24%)}30%{clip-path:polygon(0 50%,100% 50%,100% 52%,0 52%)}35%{clip-path:polygon(0 98%,100% 98%,100% 100%,0 100%)}40%{clip-path:polygon(0 1%,100% 1%,100% 3%,0 3%)}45%{clip-path:polygon(0 77%,100% 77%,100% 79%,0 79%)}50%{clip-path:polygon(0 39%,100% 39%,100% 41%,0 41%)}55%{clip-path:polygon(0 81%,100% 81%,100% 83%,0 83%)}60%{clip-path:polygon(0 2%,100% 2%,100% 4%,0 4%)}65%{clip-path:polygon(0 60%,100% 60%,100% 62%,0 62%)}70%{clip-path:polygon(0 92%,100% 92%,100% 94%,0 94%)}75%{clip-path:polygon(0 15%,100% 15%,100% 17%,0 17%)}80%{clip-path:polygon(0 48%,100% 48%,100% 50%,0 50%)}85%{clip-path:polygon(0 72%,100% 72%,100% 74%,0 74%)}90%{clip-path:polygon(0 25%,100% 25%,100% 27%,0 27%)}95%{clip-path:polygon(0 55%,100% 55%,100% 57%,0 57%)}100%{clip-path:polygon(0 8%,100% 8%,100% 10%,0 10%)}}
+        @keyframes glitch-anim-2{0%{clip-path:polygon(0 8%,100% 8%,100% 10%,0 10%)}5%{clip-path:polygon(0 55%,100% 55%,100% 57%,0 57%)}10%{clip-path:polygon(0 25%,100% 25%,100% 27%,0 27%)}15%{clip-path:polygon(0 72%,100% 72%,100% 74%,0 74%)}20%{clip-path:polygon(0 48%,100% 48%,100% 50%,0 50%)}25%{clip-path:polygon(0 15%,100% 15%,100% 17%,0 17%)}30%{clip-path:polygon(0 92%,100% 92%,100% 94%,0 94%)}35%{clip-path:polygon(0 60%,100% 60%,100% 62%,0 62%)}40%{clip-path:polygon(0 2%,100% 2%,100% 4%,0 4%)}45%{clip-path:polygon(0 81%,100% 81%,100% 83%,0 83%)}50%{clip-path:polygon(0 39%,100% 39%,100% 41%,0 41%)}55%{clip-path:polygon(0 77%,100% 77%,100% 79%,0 79%)}60%{clip-path:polygon(0 1%,100% 1%,100% 3%,0 3%)}65%{clip-path:polygon(0 98%,100% 98%,100% 100%,0 100%)}70%{clip-path:polygon(0 50%,100% 50%,100% 52%,0 52%)}75%{clip-path:polygon(0 22%,100% 22%,100% 24%,0 24%)}80%{clip-path:polygon(0 67%,100% 67%,100% 69%,0 69%)}85%{clip-path:polygon(0 33%,100% 33%,100% 35%,0 35%)}90%{clip-path:polygon(0 89%,100% 89%,100% 91%,0 91%)}95%{clip-path:polygon(0 12%,100% 12%,100% 14%,0 14%)}100%{clip-path:polygon(0 43%,100% 43%,100% 45%,0 45%)}}
+        @keyframes text-flicker { 0%, 7%, 100% { text-shadow: 0 0 8px currentColor, 0 0 10px rgba(0, 255, 255, 0.7); opacity: 1; } 3% { text-shadow: 0 0 8px currentColor, 0 0 10px rgba(255, 0, 255, 0.7); } 5% { text-shadow: none; opacity: 0.9; } }
+        .cyber-text-flicker { animation: text-flicker 6s infinite linear; }
+        .progress-bar-inner { transition: width 1.5s ease-out; }
+
+        /* === NEW: 页面进入和滚动动画 === */
+
+        /* 初始状态 (页面加载时) */
+        #navbar { animation: slide-down 1s ease-out 0.5s backwards; }
+        .animate-on-load-1 { animation: slide-in-left 1.2s ease-out 1s backwards; }
+        .animate-on-load-2 { animation: slide-in-right 1.2s ease-out 1.2s backwards; }
+        .animate-on-load-3 { animation: fade-in-up 1.2s ease-out 1.4s backwards; }
+
+        @keyframes slide-down { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes slide-in-left { from { transform: translateX(-100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slide-in-right { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fade-in-up { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* 滚动触发动画的初始状态 */
+        .animate-on-scroll {
+            opacity: 0;
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .animate-on-scroll.is-visible {
+            opacity: 1;
+            transform: none;
+        }
+        /* 具体动画效果 */
+        .anim-scale-in { transform: scale(0.8); }
+        .anim-slide-in-up { transform: translateY(50px); }
+        .anim-portfolio-card { transform: scale(0.5); }
+        .anim-timeline-item { transform: translateX(-50px); }
+
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- 预加载动画 -->
+    <div id="preloader" class="fixed inset-0 bg-[#0A0A0A] z-50 flex flex-col items-center justify-center">
+
+        <!-- 视频位于进度条上方 -->
+        <video autoplay loop muted playsinline class="w-48 h-48 mb-8"> <!-- 您可以修改 w-48 h-48 来调整视频大小 -->
+            <source src="assets/videos/haixiaoyang.webm" type="video/webm">
+        </video>
+
+        <!-- 加载进度条和文字 -->
+        <div class="flex flex-col items-center justify-center">
+            <div class="w-64 h-1 bg-gray-800 rounded-full overflow-hidden mb-4">
+                <div id="loading-bar" class="h-full bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <div id="loading-text" class="text-[#00FFFF] text-sm">正在初始化...</div>
+        </div>
+    </div>
+
+    <!-- 进度条 -->
+    <div id="progress-bar" class="progress-bar" style="width: 0%"></div>
+
+    <!-- 导航栏 -->
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-40 bg-black bg-opacity-70 backdrop-blur-md transition-all duration-300">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex justify-end md:justify-center items-center relative">
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="nav-item text-white hover:text-[#00FFFF] transition-colors duration-300">首页</a>
+                    <a href="#about" class="nav-item text-white hover:text-[#00FFFF] transition-colors duration-300">我的</a>
+                    <a href="#skills" class="nav-item text-white hover:text-[#00FFFF] transition-colors duration-300">技术栈</a>
+                    <a href="#portfolio" class="nav-item text-white hover:text-[#00FFFF] transition-colors duration-300">作品集</a>
+                    <a href="#journey" class="nav-item text-white hover:text-[#00FFFF] transition-colors duration-300">项目历程</a>
+                    <a href="#contact" class="nav-item text-white hover:text-[#00FFFF] transition-colors duration-300">联系</a>
+                </div>
+                <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none absolute right-0"><i class="fas fa-bars text-2xl"></i></button>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden bg-black bg-opacity-90 hidden"><div class="container mx-auto px-6 py-4 flex flex-col space-y-4"><a href="#home" class="text-white hover:text-[#00FFFF] transition-colors duration-300 py-2 border-b border-gray-800">首页</a><a href="#about" class="text-white hover:text-[#00FFFF] transition-colors duration-300 py-2 border-b border-gray-800">我的</a><a href="#skills" class="text-white hover:text-[#00FFFF] transition-colors duration-300 py-2 border-b border-gray-800">技术栈</a><a href="#portfolio" class="text-white hover:text-[#00FFFF] transition-colors duration-300 py-2 border-b border-gray-800">作品集</a><a href="#journey" class="text-white hover:text-[#00FFFF] transition-colors duration-300 py-2 border-b border-gray-800">项目历程</a><a href="#contact" class="text-white hover:text-[#00FFFF] transition-colors duration-300 py-2">联系</a></div></div>
+    </nav>
+
+    <!-- 首页 -->
+    <section id="home" class="section flex items-center justify-center bg-gradient-to-b from-[#0A0A0A] to-[#1A1A1A]">
+        <div class="container mx-auto text-center px-4 flex flex-col items-center">
+            <div class="mb-6 mx-auto animate-on-load-1">
+                <div class="glitch-text text-8xl md:text-9xl font-extrabold" data-text="HHL">HHL</div>
+            </div>
+            <h1 class="text-2xl md:text-3xl font-normal mb-8 text-cyan-300 tracking-widest animate-on-load-2" style="text-shadow: 0 0 8px rgba(0, 255, 255, 0.5);">视觉叙事者 | 动态图形设计师 | 特效探索者</h1>
+            <p class="text-lg md:text-xl text-gray-400 mb-12 max-w-2xl mx-auto italic animate-on-load-3">"用像素编织想象，用光影构建语言"</p>
+        </div>
+        <div id="particles-js" class="absolute inset-0 z-0"></div>
+    </section>
+
+    <!-- 我的 -->
+    <section id="about" class="section bg-[#1A1A1A]">
+        <div class="container mx-auto px-4">
+            <h2 class="text-5xl font-bold mb-20 text-center text-[#FF00FF] neon-text cyber-text-flicker">关于我</h2>
+            <div class="flex flex-col lg:flex-row items-center gap-12">
+                <div class="lg:w-1/3 animate-on-scroll anim-scale-in"><div class="relative group"><img src="assets/images/anno_kfc.png" alt="HHL照片" class="w-full max-w-md rounded-lg shadow-lg neon-border group-hover:shadow-[0_0_20px_#00FFFF] transition-all duration-300"><div class="absolute inset-0 bg-[#00FFFF] opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></div></div></div>
+                <div class="lg:w-2/3 animate-on-scroll anim-scale-in" style="transition-delay: 0.2s;">
+                    <h3 class="text-3xl font-bold mb-4 text-[#00FFFF]">你好，我是HHL</h3>
+                    <p class="text-gray-300 mb-6 text-lg leading-relaxed">我是一名专注于数字媒体创作的艺术家，致力于通过创新的数字解决方案来讲述引人入胜的故事和创造沉浸式体验。我的工作涵盖了影视制作、动态图形、3D建模和交互设计等多个领域。</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"><div class="bg-[#333333] p-6 rounded-lg"><h4 class="text-xl font-bold mb-3 text-[#00FFFF]">创作理念</h4><ul class="space-y-2"><li class="flex items-start"><i class="fas fa-book text-[#00FFFF] mr-2 mt-1"></i><span>讲好故事 - 通过视觉叙事传递情感和思想</span></li><li class="flex items-start"><i class="fas fa-vr-cardboard text-[#00FFFF] mr-2 mt-1"></i><span>创造沉浸体验 - 让观众完全融入作品世界</span></li><li class="flex items-start"><i class="fas fa-paint-brush text-[#00FFFF] mr-2 mt-1"></i><span>追求视觉创新 - 不断探索新的表现形式</span></li></ul></div><div class="bg-[#333333] p-6 rounded-lg"><h4 class="text-xl font-bold mb-3 text-[#00FFFF]">职业愿景</h4><p class="text-gray-300">我的目标是创造能够激发情感共鸣的数字体验，通过技术创新推动艺术表达的边界，为人们带来前所未有的视觉享受。</p></div></div>
+                    <div class="flex flex-wrap gap-4"><span class="flex items-center gap-2 px-3 py-1 bg-[#333333] rounded-full text-sm"><i class="fas fa-film text-[#00FFFF]"></i><span>影视制作</span></span><span class="flex items-center gap-2 px-3 py-1 bg-[#333333] rounded-full text-sm"><i class="fas fa-cube text-[#00FFFF]"></i><span>3D建模</span></span><span class="flex items-center gap-2 px-3 py-1 bg-[#333333] rounded-full text-sm"><i class="fas fa-project-diagram text-[#00FFFF]"></i><span>动态图形</span></span><span class="flex items-center gap-2 px-3 py-1 bg-[#333333] rounded-full text-sm"><i class="fas fa-mouse-pointer text-[#00FFFF]"></i><span>交互设计</span></span><span class="flex items-center gap-2 px-3 py-1 bg-[#333333] rounded-full text-sm"><i class="fas fa-book-open text-[#00FFFF]"></i><span>视觉叙事</span></span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术栈 (MODIFIED SECTION) -->
+    <section id="skills" class="section bg-[#0A0A0A]">
+        <div class="container mx-auto px-4">
+            <h2 class="text-5xl font-bold mb-20 text-center text-[#9D00FF] neon-text cyber-text-flicker">技术栈</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <!-- Design Tools -->
+                <div class="animate-on-scroll anim-slide-in-up group bg-[#1A1A1A] p-8 rounded-lg flex flex-col justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:-translate-y-2 overflow-hidden">
+                    <h3 class="text-3xl font-bold mb-6 text-[#00FFFF] flex items-center"><i class="fas fa-swatchbook w-8 text-center mr-3"></i><span>设计工具</span></h3>
+                    <div class="space-y-5">
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Adobe Photoshop</span><span class="text-[#00FFFF]">90%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="90"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Adobe Premiere Pro</span><span class="text-[#00FFFF]">85%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="85"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Adobe After Effects</span><span class="text-[#00FFFF]">85%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="85"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Adobe Illustrator</span><span class="text-[#00FFFF]">70%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="70"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">DaVinci Studio</span><span class="text-[#00FFFF]">70%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="70"></div></div></div>
+                    </div>
+                    <div class="mt-0 max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 group-hover:mt-6 transition-all duration-500 ease-in-out">
+                        <p class="text-gray-400 text-sm border-t border-gray-700 pt-4">熟练掌握从视频剪辑、后期特效合成到平面设计的全套专业流程。</p>
+                    </div>
+                </div>
+
+                <!-- 3D Tech -->
+                <div class="animate-on-scroll anim-slide-in-up group bg-[#1A1A1A] p-8 rounded-lg flex flex-col justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:-translate-y-2 overflow-hidden" style="transition-delay: 0.1s;">
+                    <h3 class="text-3xl font-bold mb-6 text-[#00FFFF] flex items-center"><i class="fas fa-cube w-8 text-center mr-3"></i><span>3D技术</span></h3>
+                    <div class="space-y-5">
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Blender</span><span class="text-[#00FFFF]">90%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="90"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Maya</span><span class="text-[#00FFFF]">80%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="80"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">3D MAX</span><span class="text-[#00FFFF]">75%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="75"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">ZBrush</span><span class="text-[#00FFFF]">70%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="70"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Cinema 4D</span><span class="text-[#00FFFF]">60%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="60"></div></div></div>
+                    </div>
+                    <div class="mt-0 max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 group-hover:mt-6 transition-all duration-500 ease-in-out">
+                        <p class="text-gray-400 text-sm border-t border-gray-700 pt-4">精通PBR与三渲二风格化渲染全流程，熟练驾驭多种主流3D软件及渲染器。</p>
+                    </div>
+                </div>
+
+                <!-- Game Art -->
+                <div class="animate-on-scroll anim-slide-in-up group bg-[#1A1A1A] p-8 rounded-lg flex flex-col justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:-translate-y-2 overflow-hidden">
+                    <h3 class="text-3xl font-bold mb-6 text-[#00FFFF] flex items-center"><i class="fas fa-gamepad w-8 text-center mr-3"></i><span>游戏美术</span></h3>
+                    <div class="space-y-5">
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Unreal Engine 5</span><span class="text-[#00FFFF]">80%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="80"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Unity</span><span class="text-[#00FFFF]">60%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="60"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Substance Painter</span><span class="text-[#00FFFF]">75%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="75"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Marmoset Toolbag</span><span class="text-[#00FFFF]">60%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="60"></div></div></div>
+                    </div>
+                    <div class="mt-0 max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 group-hover:mt-6 transition-all duration-500 ease-in-out">
+                        <p class="text-gray-400 text-sm border-t border-gray-700 pt-4">熟悉UE5中的关卡编辑、光照与动画蓝图流程，并具备Unity平台的VR内容开发与优化经验。</p>
+                    </div>
+                </div>
+
+                <!-- Dev Skills -->
+                 <div class="animate-on-scroll anim-slide-in-up group bg-[#1A1A1A] p-8 rounded-lg flex flex-col justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:-translate-y-2 overflow-hidden" style="transition-delay: 0.1s;">
+                    <h3 class="text-3xl font-bold mb-6 text-[#00FFFF] flex items-center"><i class="fas fa-code w-8 text-center mr-3"></i><span>开发技能</span></h3>
+                    <div class="space-y-5">
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">HTML/CSS</span><span class="text-[#00FFFF]">75%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="75"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Python</span><span class="text-[#00FFFF]">65%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="65"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">C++</span><span class="text-[#00FFFF]">60%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="60"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">C#</span><span class="text-[#00FFFF]">60%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="60"></div></div></div>
+                    </div>
+                    <div class="mt-0 max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 group-hover:mt-6 transition-all duration-500 ease-in-out">
+                        <p class="text-gray-400 text-sm border-t border-gray-700 pt-4">具备C++, C#, Python的扎实编程基础，并拥有利用HTML/CSS进行前端界面开发与构建的实践能力。</p>
+                    </div>
+                </div>
+
+                <!-- AI Assist -->
+                <div class="animate-on-scroll anim-slide-in-up group bg-[#1A1A1A] p-8 rounded-lg flex flex-col justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:-translate-y-2 overflow-hidden">
+                    <h3 class="text-3xl font-bold mb-6 text-[#00FFFF] flex items-center"><i class="fas fa-robot w-8 text-center mr-3"></i><span>AI辅助</span></h3>
+                    <div class="space-y-5">
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Stable Diffusion</span><span class="text-[#00FFFF]">90%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="90"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">即梦AI &amp; 可灵AI</span><span class="text-[#00FFFF]">90%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="90"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">Tripo3d&amp;Meshy (AI建模)</span><span class="text-[#00FFFF]">80%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="80"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">ChatTTS&amp;Suon (AI音频)</span><span class="text-[#00FFFF]">80%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="80"></div></div></div>
+                    </div>
+                     <div class="mt-0 max-h-0 opacity-0 group-hover:max-h-40 group-hover:opacity-100 group-hover:mt-6 transition-all duration-500 ease-in-out">
+                        <p class="text-gray-400 text-sm border-t border-gray-700 pt-4">深度掌握主流AIGC工具，能熟练运用AI进行图像生成、视频创作、音频合成及3D辅助建模，显著提升项目创作效率。</p>
+                    </div>
+                </div>
+
+                <!-- Other Skills -->
+                <div class="animate-on-scroll anim-slide-in-up group bg-[#1A1A1A] p-8 rounded-lg flex flex-col justify-center transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] hover:-translate-y-2 overflow-hidden" style="transition-delay: 0.1s;">
+                    <h3 class="text-3xl font-bold mb-6 text-[#00FFFF] flex items-center"><i class="fas fa-ellipsis-h w-8 text-center mr-3"></i><span>其它专项</span></h3>
+                    <div class="space-y-5">
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">摄影摄像</span><span class="text-[#00FFFF]">60%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="60"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">3D打印</span><span class="text-[#00FFFF]">60%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="60"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">数据处理</span><span class="text-[#00FFFF]">60%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="60"></div></div></div>
+                        <div><div class="flex justify-between mb-1"><span class="text-gray-300">等等其它</span><span class="text-[#00FFFF]">60%</span></div><div class="w-full bg-[#333333] rounded-full h-2.5"><div class="progress-bar-inner bg-gradient-to-r from-[#00FFFF] to-[#9D00FF] h-2.5 rounded-full" style="width: 0%" data-width="60"></div></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 作品集 -->
+    <section id="portfolio" class="section bg-[#1A1A1A]">
+        <div class="container mx-auto px-4">
+            <h2 class="text-5xl font-bold mb-20 text-center text-[#00FFFF] neon-text cyber-text-flicker">作品集</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-16 gap-y-12">
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/cooki.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 1</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">3D建模</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">产品渲染</span></div></div></div>
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card" style="transition-delay: 0.1s;"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/burning_car.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 2</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">UE5</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">场景设计</span></div></div></div>
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/school_bullying.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 3</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">特效合成</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">Blender</span></div></div></div>
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card" style="transition-delay: 0.1s;"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/lawn_sunken.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 4</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">角色动画</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">三渲二</span></div></div></div>
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/automobile_rendering.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 5</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">后期调色</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">达芬奇</span></div></div></div>
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card" style="transition-delay: 0.1s;"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/possessed_girl.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 6</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">动态图形</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">After Effects</span></div></div></div>
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/japanese_streets.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 7</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">AI生成</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">Stable Diffusion</span></div></div></div>
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card" style="transition-delay: 0.1s;"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/jingshuiguolv.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 8</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">交互设计</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">Figma</span></div></div></div>
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/cooki.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 9</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">占位符</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">待定</span></div></div></div>
+                <div class="project-card group bg-[#0A0A0A] rounded-lg overflow-hidden transition-all duration-300 animate-on-scroll anim-portfolio-card" style="transition-delay: 0.1s;"><div class="relative overflow-hidden aspect-[16/10] rounded-t-lg"><video class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" autoplay loop muted playsinline><source src="assets/videos/cooki.webm" type="video/webm"></video></div><div class="p-6"><h3 class="text-2xl font-bold text-white mb-2">作品标题 10</h3><p class="text-gray-400 mb-4 min-h-[3rem]">这里是关于这个作品的简短介绍，描述了项目的核心概念和所使用的技术。</p><div class="flex flex-wrap gap-2"><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">占位符</span><span class="px-2 py-1 bg-[#333333] rounded-full text-xs">待定</span></div></div></div>
+              
+            </div>
+        </div>
+    </section>
+
+    <!-- 项目历程 -->
+    <section id="journey" class="section bg-[#0A0A0A]">
+        <div class="container mx-auto px-4">
+            <h2 class="text-5xl font-bold mb-20 text-center text-[#00FFFF] neon-text cyber-text-flicker">项目历程</h2>
+            <div class="journey-timeline">
+                <div class="journey-item animate-on-scroll anim-timeline-item"><div class="journey-content"><h3 class="text-2xl font-bold text-[#00FFFF] mb-2">2020年 - 启程·探索</h3><p class="text-gray-300">开始系统学习数字媒体技术，踏入充满无限可能的创意世界，点亮了通往未来的第一盏灯。</p></div></div>
+                <div class="journey-item animate-on-scroll anim-timeline-item"><div class="journey-content"><h3 class="text-2xl font-bold text-[#00FFFF] mb-2">2021-2025年 - 竞赛·磨砺</h3><p class="text-gray-400 mb-4">在各类职业技能竞赛中不断挑战自我，将理论知识付诸实践，收获了宝贵的经验与荣誉。</p><ul class="space-y-2 text-gray-300"><li class="flex items-center"><i class="fas fa-trophy text-[#00FFFF] mr-3"></i>市职业技能比赛虚拟现实技术二等奖</li><li class="flex items-center"><i class="fas fa-trophy text-[#00FFFF] mr-3"></i>市职业技能比赛动漫制作二等奖</li><li class="flex items-center"><i class="fas fa-trophy text-[#00FFFF] mr-3"></i>市及省职业技能比赛数字艺术设计三等奖</li></ul></div></div>
+                <div class="journey-item animate-on-scroll anim-timeline-item"><div class="journey-content"><h3 class="text-2xl font-bold text-[#00FFFF] mb-2">2025年 - 创新·突破</h3><p class="text-gray-300">在福建省大学生创新创业比赛中取得 <span class="text-[#FF00FF] font-bold text-lg">金</span> 奖，展现了综合的创新思维与项目落地能力。</p></div></div>
+                <div class="journey-item animate-on-scroll anim-timeline-item"><div class="journey-content"><h3 class="text-2xl font-bold text-[#00FFFF] mb-2">2026年 - 实践·启航</h3><p class="text-gray-400 italic">即将开启企业实习，将所学应用于真实项目，探索职业生涯的更多可能。新的篇章，敬请期待...</p></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系 (无动画) -->
+    <section id="contact" class="section bg-[#1A1A1A]">
+        <div class="container mx-auto px-4">
+            <h2 class="text-5xl font-bold mb-20 text-center text-[#00FFFF] neon-text cyber-text-flicker">联系我</h2>
+            <div class="flex flex-col lg:flex-row gap-12">
+                <div class="lg:w-1/2"><h3 class="text-2xl font-bold mb-6 text-[#00FFFF]">联系方式</h3><div class="space-y-6"><div class="flex items-start"><div class="w-10 h-10 rounded-full bg-[#333333] flex items-center justify-center text-[#00FFFF] mr-4"><i class="fas fa-envelope"></i></div><div><h4 class="font-bold text-gray-300 mb-1">电子邮件</h4><a href="mailto:1145141919810@homo.com" class="hover-text">1145141919810@homo.com</a></div></div><div class="flex items-start"><div class="w-10 h-10 rounded-full bg-[#333333] flex items-center justify-center text-[#00FFFF] mr-4"><i class="fas fa-phone-alt"></i></div><div><h4 class="font-bold text-gray-300 mb-1">电话</h4><a href="tel:1145141919810" class="hover-text">1145141919810</a></div></div><div class="flex items-start"><div class="w-10 h-10 rounded-full bg-[#333333] flex items-center justify-center text-[#00FFFF] mr-4"><i class="fas fa-map-marker-alt"></i></div><div><h4 class="font-bold text-gray-300 mb-1">地址</h4><p class="hover-text">东京都市下北泽区产业园A座502</p></div></div></div><h3 class="text-2xl font-bold mt-12 mb-6 text-[#00FFFF]">社交媒体</h3><div class="flex space-x-4"><a href="#" class="w-12 h-12 rounded-full bg-[#333333] flex items-center justify-center text-[#00FFFF] hover:bg-[#00FFFF] hover:text-black transition-colors duration-300"><i class="fab fa-behance"></i></a><a href="#" class="w-12 h-12 rounded-full bg-[#333333] flex items-center justify-center text-[#00FFFF] hover:bg-[#00FFFF] hover:text-black transition-colors duration-300"><i class="fab fa-dribbble"></i></a><a href="#" class="w-12 h-12 rounded-full bg-[#333333] flex items-center justify-center text-[#00FFFF] hover:bg-[#00FFFF] hover:text-black transition-colors duration-300"><i class="fab fa-linkedin-in"></i></a><a href="#" class="w-12 h-12 rounded-full bg-[#333333] flex items-center justify-center text-[#00FFFF] hover:bg-[#00FFFF] hover:text-black transition-colors duration-300"><i class="fab fa-instagram"></i></a></div></div>
+                <div class="lg:w-1/2"><h3 class="text-2xl font-bold mb-6 text-[#00FFFF]">发送消息</h3><form class="space-y-4"><div><label for="name" class="block text-gray-300 mb-2">姓名</label><input type="text" id="name" class="w-full bg-[#333333] border border-[#333333] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00FFFF] transition-colors duration-300"></div><div><label for="email" class="block text-gray-300 mb-2">电子邮件</label><input type="email" id="email" class="w-full bg-[#333333] border border-[#333333] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00FFFF] transition-colors duration-300"></div><div><label for="subject" class="block text-gray-300 mb-2">主题</label><input type="text" id="subject" class="w-full bg-[#333333] border border-[#333333] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00FFFF] transition-colors duration-300"></div><div><label for="message" class="block text-gray-300 mb-2">消息</label><textarea id="message" rows="5" class="w-full bg-[#333333] border border-[#333333] rounded-lg px-4 py-3 text-white focus:outline-none focus:border-[#00FFFF] transition-colors duration-300"></textarea></div><button type="submit" class="btn-submit px-8 py-3 bg-[#00FFFF] text-black font-bold rounded-lg hover:bg-[#9D00FF] transition-colors duration-300">发送消息</button></form></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-black py-8"><div class="container mx-auto px-4 text-center"><p class="text-gray-400 mb-2">2025 HHL. 保留所有权利.</p></div></footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Preloader
+            const preloader = document.getElementById('preloader');
+            let progress = 0;
+            const loadingBar = document.getElementById('loading-bar');
+            const loadingText = document.getElementById('loading-text');
+            const loadingPhrases = ['正在渲染采样中...','构建虚拟场景...','编译光影着色器...','加载高精度模型...'];
+            let textInterval = setInterval(() => { loadingText.textContent = loadingPhrases[Math.floor(Math.random() * loadingPhrases.length)]; }, 500);
+            const interval = setInterval(() => {
+                progress += Math.random() * 5 + 1;
+                if (progress > 100) progress = 100;
+                loadingBar.style.width = `${progress}%`;
+                if (progress >= 100) {
+                    clearInterval(interval); clearInterval(textInterval);
+                    loadingText.textContent = '创意空间已就绪!';
+                    setTimeout(() => {
+                        preloader.style.opacity = '0';
+                        preloader.style.pointerEvents = 'none';
+                        setTimeout(() => { preloader.style.display = 'none'; }, 500);
+                    }, 500);
+                }
+            }, 100);
+
+            // Mobile Menu
+            const menuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuButton.addEventListener('click', function() {
+                mobileMenu.classList.toggle('hidden');
+                this.querySelector('i').classList.toggle('fa-bars');
+                this.querySelector('i').classList.toggle('fa-times');
+            });
+
+            // Scroll Progress Bar
+            window.addEventListener('scroll', () => {
+                const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+                const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                document.getElementById('progress-bar').style.width = (scrollTop / scrollHeight) * 100 + '%';
+            });
+
+            // Smooth Scroll
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetElement = document.querySelector(this.getAttribute('href'));
+                    if (targetElement) {
+                        window.scrollTo({ top: targetElement.offsetTop - 80, behavior: 'smooth' });
+                        if (!mobileMenu.classList.contains('hidden')) {
+                            mobileMenu.classList.add('hidden');
+                            menuButton.querySelector('i').classList.add('fa-bars');
+                            menuButton.querySelector('i').classList.remove('fa-times');
+                        }
+                    }
+                });
+            });
+
+            // Intersection Observer for progress bars and scroll animations
+            const animatedElements = document.querySelectorAll('.animate-on-scroll');
+            const progressBars = document.querySelectorAll('.progress-bar-inner');
+            
+            const observerOptions = { root: null, threshold: 0.15 };
+
+            const observerCallback = (entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        // For general animations
+                        entry.target.classList.add('is-visible');
+                        
+                        // For progress bars inside an animated parent
+                        const innerProgressBars = entry.target.querySelectorAll('.progress-bar-inner');
+                        if (innerProgressBars.length > 0) {
+                            innerProgressBars.forEach(bar => {
+                                setTimeout(() => { // Small delay for better visual effect
+                                    bar.style.width = bar.dataset.width + '%';
+                                }, 200);
+                            });
+                        }
+                        
+                        observer.unobserve(entry.target);
+                    }
+                });
+            };
+            
+            const animationObserver = new IntersectionObserver(observerCallback, observerOptions);
+            animatedElements.forEach(el => animationObserver.observe(el));
+        });
+    </script>
+</body>
+</html>
