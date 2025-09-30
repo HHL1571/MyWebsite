@@ -1,0 +1,1473 @@
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字媒体作品集 | Creative Studio</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <!-- 引入Google字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet">
+    
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#7B61FF',
+                        dark: '#0F172A',
+                        'dark-light': '#1E293B',
+                        'gray-custom': '#94A3B8',
+                        accent: '#38BDF8'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .text-shadow {
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            }
+            .text-gradient {
+                background-clip: text;
+                -webkit-background-clip: text;
+                color: transparent;
+            }
+            .bg-grid {
+                background-size: 40px 40px;
+                background-image: 
+                    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            }
+            .mask-gradient {
+                mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+                -webkit-mask-image: linear-gradient(to bottom, black 85%, transparent 100%);
+            }
+        }
+    </style>
+    
+    <style>
+        /* 基础动画设置 */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A;
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1E293B;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #165DFF;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #0F46D1;
+        }
+        
+        /* 圆形进度条样式 */
+        .loader-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-circle {
+            stroke-dasharray: 283; /* 2 * π * 45 */
+            stroke-dashoffset: 283;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.35s;
+        }
+        
+        .progress-text {
+            position: absolute;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #94A3B8;
+            margin-top: 120px;
+        }
+        
+        /* 元素进入动画 */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s ease-out;
+        }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 视频卡片悬停效果 */
+        .video-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .video-card:hover {
+            transform: translateY(-8px);
+        }
+        
+        .video-card:hover .video-overlay {
+            opacity: 1;
+        }
+        
+        /* 技术栈图标悬停效果 */
+        .skill-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .skill-icon:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        /* 导航栏滚动效果 */
+        .nav-scrolled {
+            @apply bg-dark/95 backdrop-blur-md shadow-lg;
+        }
+        
+        /* 时间线动画 */
+        .timeline-item {
+            transition: all 0.5s ease-out;
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        
+        .timeline-item.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        /* 按钮动画 */
+        .btn-primary {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: all 0.6s ease;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        /* 视频容器样式 */
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: 450px; /* 720x450 比例 */
+            overflow: hidden;
+            border-radius: 0.75rem;
+            cursor: pointer;
+        }
+
+        .video-thumbnail {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #1E293B;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+        }
+
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 播放按钮样式 */
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            background-color: rgba(22, 93, 255, 0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            transition: all 0.3s ease;
+            opacity: 1;
+            border: none;
+        }
+
+        .play-button i {
+            color: white;
+            font-size: 32px;
+            margin-left: 8px; /* 三角形图标视觉居中调整 */
+        }
+
+        .video-card:hover .play-button {
+            transform: translate(-50%, -50%) scale(1.1);
+            background-color: rgba(22, 93, 255, 1);
+            box-shadow: 0 0 20px rgba(22, 93, 255, 0.5);
+        }
+
+        /* 视频播放器样式 */
+        .video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            display: none; /* 默认隐藏视频，显示缩略图 */
+        }
+
+        /* 暂停时显示的播放按钮 */
+        .pause-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .pause-button {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(22, 93, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .pause-button i {
+            color: white;
+            font-size: 32px;
+        }
+
+        /* 工具图标样式 */
+        .tool-icon {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            margin: 0 auto 4px;
+        }
+    </style>
+</head>
+
+<body class="font-inter text-gray-200 bg-dark overflow-x-hidden">
+    <!-- 圆形进度条加载动画 -->
+    <div id="loader" class="fixed inset-0 z-50 bg-dark flex items-center justify-center">
+        <div class="loader-container">
+            <!-- 圆形进度条 -->
+            <svg class="progress-ring" width="100" height="100">
+                <circle
+                    class="progress-ring-circle"
+                    stroke="#165DFF"
+                    stroke-width="4"
+                    fill="transparent"
+                    r="45"
+                    cx="50"
+                    cy="50"
+                />
+            </svg>
+            <!-- 加载文字 -->
+            <div class="progress-text">正在加载渲染缓存</div>
+        </div>
+    </div>
+
+    <!-- 导航栏 -->
+    <header id="navbar" class="fixed top-0 left-0 w-full z-40 transition-all duration-300 py-4">
+        <div class="container mx-auto px-6 md:px-12 flex justify-between items-center">
+            <a href="#hero" class="text-2xl font-bold text-white flex items-center gap-2">
+                <span class="text-primary"><i class="fa fa-cube"></i></span>
+                <span>MediaCraft</span>
+            </a>
+            
+            <!-- 桌面导航 -->
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="#about" class="text-gray-300 hover:text-primary transition-colors">关于我</a>
+                <a href="#skills" class="text-gray-300 hover:text-primary transition-colors">技术栈</a>
+                <a href="#portfolio" class="text-gray-300 hover:text-primary transition-colors">作品集</a>
+                <a href="#journey" class="text-gray-300 hover:text-primary transition-colors">学习历程</a>
+                <a href="#contact" class="text-gray-300 hover:text-primary transition-colors">联系我</a>
+            </nav>
+            
+            <!-- 移动端菜单按钮 -->
+            <button id="menu-toggle" class="md:hidden text-white text-2xl">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+        
+        <!-- 移动端导航菜单 -->
+        <div id="mobile-menu" class="md:hidden fixed inset-0 bg-dark-light/98 z-50 transform translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="flex justify-end p-6">
+                <button id="menu-close" class="text-white text-2xl">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <nav class="flex flex-col items-center justify-center h-full space-y-8 text-xl">
+                <a href="#about" class="text-gray-300 hover:text-primary transition-colors">关于我</a>
+                <a href="#skills" class="text-gray-300 hover:text-primary transition-colors">技术栈</a>
+                <a href="#portfolio" class="text-gray-300 hover:text-primary transition-colors">作品集</a>
+                <a href="#journey" class="text-gray-300 hover:text-primary transition-colors">学习历程</a>
+                <a href="#contact" class="text-gray-300 hover:text-primary transition-colors">联系我</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 英雄区域 -->
+    <section id="hero" class="min-h-screen flex items-center justify-center relative overflow-hidden bg-grid">
+        <div class="absolute inset-0 bg-gradient-to-b from-dark/80 to-dark"></div>
+        
+        <!-- 装饰元素 -->
+        <div class="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full filter blur-3xl"></div>
+        <div class="absolute bottom-1/3 right-1/3 w-96 h-96 bg-secondary/20 rounded-full filter blur-3xl"></div>
+        
+        <div class="container mx-auto px-6 md:px-12 relative z-10 text-center">
+            <h1 class="text-[clamp(2.5rem,8vw,5rem)] font-extrabold leading-tight mb-6 text-shadow reveal">
+                数字媒体<br>
+                <span class="bg-gradient-to-r from-primary to-secondary text-gradient">创意设计师</span>
+            </h1>
+            <p class="text-[clamp(1rem,3vw,1.25rem)] text-gray-300 max-w-2xl mx-auto mb-10 reveal">
+                专注影视后期、动态视觉效果和数字媒体艺术创作，将技术与创意完美融合
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4 reveal">
+                <a href="#portfolio" class="btn-primary bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg font-medium transition-all">
+                    查看作品集
+                </a>
+            </div>
+            
+            <!-- 滚动提示 -->
+            <div class="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <a href="#about" class="text-gray-400 hover:text-primary transition-colors">
+                    <i class="fa fa-angle-down text-3xl"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于我 -->
+    <section id="about" class="py-24 bg-dark-light relative">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="max-w-3xl mx-auto text-center mb-16 reveal">
+                <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-bold mb-6">关于我</h2>
+                <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="relative reveal">
+                    <div class="w-full h-[500px] rounded-xl overflow-hidden">
+                        <img src="https://picsum.photos/id/1076/800/1000" alt="数字媒体设计师工作照" class="w-full h-full object-cover">
+                    </div>
+                    <div class="absolute -bottom-6 -right-6 w-40 h-40 bg-primary/10 rounded-xl -z-10"></div>
+                    <div class="absolute -top-6 -left-6 w-40 h-40 bg-secondary/10 rounded-xl -z-10"></div>
+                </div>
+                
+                <div class="reveal">
+                    <h3 class="text-2xl font-semibold mb-4">你好，我是<span class="text-primary">HHL</span></h3>
+                    <p class="text-gray-300 mb-6 leading-relaxed">
+                        一名充满热情的数字媒体设计师，拥有5年学习经验。我专注于创造富有吸引力的数字体验，
+                        擅长将复杂的概念转化为直观且引人入胜的视觉设计。
+                    </p>
+                    <p class="text-gray-300 mb-8 leading-relaxed">
+                        我的最大优势是能够快速学习并掌握新技术，并将其与现有成熟流程高效结合，从而提升作品的质量与效率。
+                      在保持广泛的技术平面同时深入研究部分板块。
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-6 mb-8">
+                        <div>
+                            <h4 class="text-gray-400 mb-2">教育背景</h4>
+                            <p>数字媒体技术实习生</p>
+                        </div>
+                        <div>
+                            <h4 class="text-gray-400 mb-2">所在地</h4>
+                            <p>厦门市</p>
+                        </div>
+                        <div>
+                            <h4 class="text-gray-400 mb-2">学习时间</h4>
+                            <p>5年+</p>
+                        </div>
+                        <div>
+                            <h4 class="text-gray-400 mb-2">专长领域</h4>
+                            <p>技术动画/影视后期</p>
+                        </div>
+                    </div>
+                    
+                    <a href="#contact" class="btn-primary inline-block bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg font-medium transition-all">
+                        联系我 <i class="fa fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 技术栈 -->
+    <section id="skills" class="py-24 bg-dark relative">
+        <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-dark-light to-transparent"></div>
+        
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="max-w-3xl mx-auto text-center mb-16 reveal">
+                <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-bold mb-6">技术栈</h2>
+                <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
+                <p class="text-gray-300">
+                    多年的数字媒体设计经验让我掌握了一系列专业工具和技术，能够从概念到执行全方位实现创意
+                </p>
+            </div>
+            
+            <!-- 四栏技术栈布局 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- 设计技能 -->
+                <div class="reveal">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center">
+                        <span class="text-primary mr-3"><i class="fa fa-paint-brush"></i></span>
+                        设计技能
+                    </h3>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>平面设计</span>
+                                <span>80%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>动态图形设计</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>视频剪辑与特效</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>音频处理</span>
+                                <span>70%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-primary h-2 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3D建模动画 -->
+                <div class="reveal">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center">
+                        <span class="text-secondary mr-3"><i class="fa fa-cube"></i></span>
+                        3D建模动画
+                    </h3>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>PBR建模全流程</span>
+                                <span>80%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-secondary h-2 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>三渲二动画制作</span>
+                                <span>70%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-secondary h-2 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>VFX特效模拟</span>
+                                <span>75%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-secondary h-2 rounded-full" style="width: 75%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>3D打印\扫描流程</span>
+                                <span>65%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-secondary h-2 rounded-full" style="width: 65%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 游戏技术美术 -->
+                <div class="reveal">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center">
+                        <span class="text-accent mr-3"><i class="fa fa-gamepad"></i></span>
+                        游戏技术美术
+                    </h3>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>UE5地编/动画</span>
+                                <span>85%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-accent h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>动作捕捉/数字人</span>
+                                <span>80%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-accent h-2 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>Unity VR/AR开发</span>
+                                <span>70%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-accent h-2 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>虚拟制片</span>
+                                <span>60%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-accent h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 开发技能与AI -->
+                <div class="reveal">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center">
+                        <span class="text-green-400 mr-3"><i class="fa fa-code"></i></span>
+                        开发技能与AI
+                    </h3>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>HTML/CSS前端</span>
+                                <span>70%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-green-400 h-2 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>C#/Python语言基础</span>
+                                <span>60%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-green-400 h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>AI绘画/视频/音频</span>
+                                <span>90%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-green-400 h-2 rounded-full" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span>AI模型训练/部署</span>
+                                <span>60%</span>
+                            </div>
+                            <div class="w-full bg-gray-700/50 rounded-full h-2">
+                                <div class="bg-green-400 h-2 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 常用工具 - 两行，每行6个 -->
+            <div class="mt-20 reveal active">
+                <h3 class="text-2xl font-semibold mb-10 text-center">常用工具</h3>
+                
+                <!-- 第一行工具 -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6 mb-8">
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\photoshop.png" alt="Photoshop图标" class="tool-icon">
+                        <p class="text-primary">Photoshop</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\aftereffects.png" alt="After Effects图标" class="tool-icon">
+                        <p class="text-primary">After Effects</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\illustrator.png" alt="Illustrator图标" class="tool-icon">
+                        <p class="text-primary">Illustrator</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\davinci.png" alt="DaVinci Studio图标" class="tool-icon">
+                        <p class="text-primary">DaVinci Studio</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\blender.png" alt="Blender图标" class="tool-icon">
+                        <p class="text-secondary">Blender</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\maya.png" alt="MAYA图标" class="tool-icon">
+                        <p class="text-secondary">MAYA</p>
+                    </div>
+                </div>
+                
+                <!-- 第二行工具 -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\3dmax.png" alt="3D MAX图标" class="tool-icon">
+                        <p class="text-secondary">3D MAX</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\zbrush.png" alt="Zbrush图标" class="tool-icon">
+                        <p class="text-secondary">ZBrush</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\unity.png" alt="Unity图标" class="tool-icon">
+                        <p class="text-accent">Unity</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\unreal engine.png" alt="Unreal Engine图标" class="tool-icon">
+                        <p class="text-accent">Unreal Engine 5</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\vscode.png" alt="VS Code图标" class="tool-icon">
+                        <p class="text-green-400">VS Code</p>
+                    </div>
+                    
+                    <div class="skill-icon bg-dark-light p-6 rounded-xl text-center">
+                        <img src="assets\ico\comfyui.png" alt="ComfyUI图标" class="tool-icon">
+                        <p class="text-green-400">ComfyUI</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 作品集 -->
+    <section id="portfolio" class="py-24 bg-dark-light relative">
+        <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-dark to-transparent"></div>
+        
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="max-w-3xl mx-auto text-center mb-16 reveal active">
+                <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-bold mb-6">作品集</h2>
+                <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
+                <p class="text-gray-300">
+                    精选数字媒体设计作品，涵盖交互设计、动态图形、3D可视化等多个领域
+                </p>
+            </div>
+            
+            <!-- 视频作品网格 - 每行两个视频，共10个视频 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 视频作品1 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal active" data-category="引擎动画">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <!-- 视频播放器 -->
+                        <video class="video-player" src="assets\videos\duijue.webm" type="video/webm" width="720" height="450" poster="assets\images\duijue.png" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <!-- 缩略图 -->
+                        <div class="video-thumbnail">
+                            <img src="assets\images\duijue.png" alt="《对决》动画短片" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- 初始播放按钮 -->
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-primary/90 text-white px-3 py-1 rounded-full">引擎动画</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">《对决》动画短片</h3>
+                        <p class="text-gray-400 text-sm">利用最新版UE5构建。核心技术包括：UE5高真实感场景搭建、通过插件实现逼真雨效与建筑/角色水渍。角色控制器基于UE5模块化系统快速开发。动画与约束系统完成动画制作，并使用UE5电影级摄像机渲染输出。直接展示了对UE5前沿技术的实操能力和高效的工作流。</p>
+                    </div>
+                </div>
+                
+                <!-- 视频作品2 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal active" data-category="动画合成">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <video class="video-player" src="assets\videos\possessed_girl.webm" type="video/webm" width="720" height="450" poster="assets\images\beifushen.png" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <div class="video-thumbnail">
+                            <img src="assets\images\beifushen.png" alt="《被附身的女孩》动画" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- 初始播放按钮 -->
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-secondary/90 text-white px-3 py-1 rounded-full">动画合成</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">《被附身的女孩》动画</h3>
+                        <p class="text-gray-400 text-sm">专注于卡通风格角色制作流程。技术环节包括：Blender完成角色建模、卡通材质与渲染效果制作。利用开源插件对角色进行身体、面部及服装的全面绑定。动画制作完成后，导入After Effects进行特效制作与最终合成。直接展示了Blender到AE的完整角色动画管线及多软件协同能力。</p>
+                    </div>
+                </div>
+                
+                <!-- 视频作品3 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal active" data-category="地编渲染">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <video class="video-player" src="assets\videos\japanese_streets.webm" type="video/webm" width="720" height="450" poster="assets\images\rishijianzhu.jpg" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <div class="video-thumbnail">
+                            <img src="assets\images\rishijianzhu.jpg" alt="日式场景效果渲染" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- 初始播放按钮 -->
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-accent/90 text-white px-3 py-1 rounded-full">地编渲染</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">日式场景效果渲染</h3>
+                        <p class="text-gray-400 text-sm">此项目专注于UE5场景与特效技术。利用UE5地编工具完成场景搭建，通过插件实现动态下雨效果。核心技术包括：UE5特效系统制作粒子效果与火焰动画。最终通过UE5渲染输出。直接展示了UE5环境构建、动态天气集成及复杂特效制作能力。</p>
+                    </div>
+                </div>
+                
+                <!-- 视频作品4 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal active" data-category="包装设计">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <video class="video-player" src="assets\videos\hezidonghua.webm" type="video/webm" width="720" height="450" poster="assets\images\ningmeng.jpeg" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <div class="video-thumbnail">
+                            <img src="assets\images\ningmeng.jpeg" alt="安岳柠檬包装设计动画" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- 初始播放按钮 -->
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-primary/90 text-white px-3 py-1 rounded-full">包装设计</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">安岳柠檬包装设计动画</h3>
+                        <p class="text-gray-400 text-sm">整合多软件流程，实现包装设计与可视化。技术环节包括：Adobe AI完成包装平面设计，After Effects制作MG动态效果动画。最终利用Blender进行包装的3D可视化广告渲染。展示了平面设计、动态图形与三维渲染的跨软件整合能力。</p>
+                    </div>
+                </div>
+                
+                <!-- 视频作品5 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal active" data-category="后期合成">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <video class="video-player" src="assets\videos\houqihecheng.webm" type="video/webm" width="720" height="450" poster="assets\images\poyan.jpg" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <div class="video-thumbnail">
+                            <img src="assets\images\poyan.jpg" alt="影视后期特效与合成" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- 初始播放按钮 -->
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-primary/90 text-white px-3 py-1 rounded-full">后期合成</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">影视后期特效与合成</h3>
+                        <p class="text-gray-400 text-sm">两段视频组合展示高级后期制作。涉及：After Effects视频追踪，Blender特效制作与模拟，最终在AE中合成输出。后半段使用达芬奇完成视频抠像与合成。展示了视频追踪、三维特效集成、高级合成与抠像的跨软件工作流。</p>
+                    </div>
+                </div>
+                
+                <!-- 视频作品6 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal active" data-category="MG动画">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <video class="video-player" src="assets\videos\mg_donghua.webm" type="video/webm" width="720" height="450" poster="assets\images\mgdonghua.png" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <div class="video-thumbnail">
+                            <img src="assets\images\mgdonghua.png" alt="MG图形与角色动画" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- 初始播放按钮 -->
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-accent/90 text-white px-3 py-1 rounded-full">MG动画</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">MG图形与角色动画</h3>
+                        <p class="text-gray-400 text-sm">专注于After Effects动画制作。技术环节包括：AE完成图形拆分与修改，并制作MG动画。其中，利用AE插件进行角色绑定并完成动画制作。展示了AE图形处理、MG动画制作以及插件辅助角色动画的综合运用能力。</p>
+                    </div>
+                </div>
+                
+                <!-- 视频作品7 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal" data-category="AI动画">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <video class="video-player" src="assets\videos\xiaoqi.webm" type="video/webm" width="720" height="450" poster="assets\images\dianyinghaibao.jpg" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <div class="video-thumbnail">
+                            <img src="assets\images\dianyinghaibao.jpg" alt="《小奇的奇妙冒险》AI动画" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- 初始播放按钮 -->
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-secondary/90 text-white px-3 py-1 rounded-full">AI动画</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">《小奇的奇妙冒险》AI动画</h3>
+                        <p class="text-gray-400 text-sm">利用AI工具链实现原画到视频的完整流程。技术环节包括：SD（ComfyUI）生成原画与分镜设计，即梦AI制作动画与转场，可灵AI制作部分特效。最终通过TopazAI进行视频放大与效果提升。展示了AI驱动的设计、动画与后期处理的整合能力。</p>
+                    </div>
+                </div>
+                
+                <!-- 视频作品8 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal" data-category="引擎动画">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <video class="video-player" src="assets\videos\automobile_rendering.webm" type="video/webm" width="720" height="450" poster="assets\images\ue_qiche.jpg" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <div class="video-thumbnail">
+                            <img src="assets\images\ue_qiche.jpg" alt="引擎汽车动画渲染" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- 初始播放按钮 -->
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-primary/90 text-white px-3 py-1 rounded-full">引擎动画</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">引擎汽车动画渲染</h3>
+                        <p class="text-gray-400 text-sm">记专注于视效集成与UE5汽车动画。技术环节包括：使用EmberGen制作特效并导入UE。在UE5中对汽车进行绑定、材质应用，并完成打光与动画渲染。展示了EmberGen动态流体/烟雾特效与UE5车辆集成、材质、灯光及动画渲染的复合技术流程。</p>
+                    </div>
+                </div>
+                
+                <!-- 视频作品9 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal" data-category="三维渲染">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <video class="video-player" src="assets\videos\cooki.webm" type="video/webm" width="720" height="450" poster="assets\images\heibai.jpg" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <div class="video-thumbnail">
+                            <img src="assets\images\heibai.jpg" alt="Blender渲染作品" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- 初始播放按钮 -->
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-primary/90 text-white px-3 py-1 rounded-full">三维渲染</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">Blender建模与渲染作品</h3>
+                        <p class="text-gray-400 text-sm">完整利用Blender实现全流程制作。技术环节包括：Blender内完成建模、材质、渲染、流体模拟及动画。展示了Blender在三维创作领域从资产制作到动态渲染的全面掌控能力。</p>
+                    </div>
+                </div>
+                
+                <!-- 视频作品10 -->
+                <div class="video-card bg-dark rounded-xl overflow-hidden shadow-lg reveal" data-category="3D可视化">
+                    <div class="video-container" onclick="toggleVideo(this)">
+                        <video class="video-player" src="assets\videos\xunishuzir.png" type="video/webm" width="720" height="450" poster="assets\videos\xunishuzir.png" playsinline>
+                            您的浏览器不支持WebM视频格式
+                        </video>
+                        
+                        <div class="video-thumbnail">
+                            <img src="assets\videos\xunishuzir.png" alt="虚拟角色动画预览" class="w-full h-full object-cover">
+                        </div>
+                        <!--
+                        初始播放按钮 
+                        <button class="play-button">
+                            <i class="fa fa-play"></i>
+                        </button>
+                        -->
+                        <!-- 暂停时显示的覆盖层和按钮 -->
+                        <div class="pause-overlay">
+                            <button class="pause-button">
+                                <i class="fa fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- 类别标签 - 左下角 -->
+                        <div class="absolute bottom-4 left-4 z-20">
+                            <span class="text-xs uppercase tracking-wider bg-accent/90 text-white px-3 py-1 rounded-full">虚拟数字人</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-semibold mb-2">虚拟角色动画短片</h3>
+                        <p class="text-gray-400 text-sm">原创虚拟角色设计与动画制作，展现角色性格与故事背景</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-12 reveal">
+                <a href="#" class="btn-primary inline-block bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg font-medium transition-all">
+            查看更多作品 <i class="fa fa-external-link ml-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 学习历程 -->
+    <section id="journey" class="py-24 bg-dark relative">
+        <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-dark-light to-transparent"></div>
+        <div class="absolute right-0 top-1/3 w-96 h-96 bg-primary/5 rounded-full filter blur-3xl"></div>
+        
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="max-w-3xl mx-auto text-center mb-16 reveal">
+                <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-bold mb-6">学习历程</h2>
+                <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
+                <p class="text-gray-300">
+                    从数字媒体设计的初学者到专业创作者，每一步都是成长的见证
+                </p>
+            </div>
+            
+            <!-- 时间线 -->
+            <div class="relative max-w-4xl mx-auto">
+                <!-- 时间线中轴线 -->
+                <div class="absolute left-0 md:left-1/2 top-0 bottom-0 w-1 bg-primary/30 transform md:translate-x-[-0.5px]"></div>
+                
+                <!-- 时间线项目1：2020年 - 启程·探索 -->
+                <div class="timeline-item mb-16 relative">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 mt-6 md:mt-0">
+                            <span class="text-primary font-semibold">2020年</span>
+                            <h3 class="text-xl font-bold mt-1 mb-2">启程·探索</h3>
+                            <p class="text-gray-400">
+                                开始系统学习数字媒体技术，踏入充满无限可能的创意世界，点亮了通往未来的第一盏灯。
+                            </p>
+                        </div>
+                        
+                        <div class="absolute left-0 md:left-1/2 w-6 h-6 rounded-full bg-primary transform md:translate-x-[-50%] z-10 order-1 md:order-2"></div>
+                        
+                        <div class="md:w-1/2 md:pl-12 hidden md:block order-3"></div>
+                    </div>
+                </div>
+                
+                <!-- 时间线项目2：2021-2025年 - 竞赛·磨砺 -->
+                <div class="timeline-item mb-16 relative">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 hidden md:block order-1"></div>
+                        
+                        <div class="absolute left-0 md:left-1/2 w-6 h-6 rounded-full bg-primary transform md:translate-x-[-50%] z-10 order-2"></div>
+                        
+                        <div class="md:w-1/2 md:pl-12 order-3 mt-6 md:mt-0">
+                            <span class="text-primary font-semibold">2021-2025年</span>
+                            <h3 class="text-xl font-bold mt-1 mb-2">竞赛·磨砺</h3>
+                            <p class="text-gray-400 mb-3">
+                                在各类职业技能竞赛中不断挑战自我，将理论知识付诸实践，收获了宝贵的经验与荣誉。
+                            </p>
+                            <ul class="text-gray-400 list-disc list-inside space-y-1">
+                                <li>厦门市职业技能比赛虚拟现实技术二等奖</li>
+                                <li>厦门市职业技能比赛动漫制作一等奖</li>
+                                <li>福建省职业技能比赛数字艺术设计三等奖</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 时间线项目3：2025年 - 创新·突破 -->
+                <div class="timeline-item mb-16 relative">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 md:text-right order-2 md:order-1 mt-6 md:mt-0">
+                            <span class="text-primary font-semibold">2025年</span>
+                            <h3 class="text-xl font-bold mt-1 mb-2">创新·突破</h3>
+                           <p class="text-gray-400 mb-3">
+                                积极参与团队合作共同应对挑战，展现了综合的创新思维与项目落地能力。
+                            <ul class="text-gray-400 list-disc list-inside space-y-1">
+                                <li>福建省大学生创新创业大赛金奖</li>
+                                <li>福建省未来设计师大赛一等奖</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="absolute left-0 md:left-1/2 w-6 h-6 rounded-full bg-primary transform md:translate-x-[-50%] z-10 order-1 md:order-2"></div>
+                        
+                        <div class="md:w-1/2 md:pl-12 hidden md:block order-3"></div>
+                    </div>
+                </div>
+                
+                <!-- 时间线项目4：2026年 - 实践·启航 -->
+                <div class="timeline-item relative">
+                    <div class="flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 md:pr-12 hidden md:block order-1"></div>
+                        
+                        <div class="absolute left-0 md:left-1/2 w-6 h-6 rounded-full bg-accent transform md:translate-x-[-50%] z-10 order-2"></div>
+                        
+                        <div class="md:w-1/2 md:pl-12 order-3 mt-6 md:mt-0">
+                            <span class="text-primary font-semibold">2026年</span>
+                            <h3 class="text-xl font-bold mt-1 mb-2">实践·启航</h3>
+                            <p class="text-gray-400">
+                                即将开启企业实习，将所学应用于真实项目，探索职业生涯的更多可能。新的篇章，敬请期待...
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系我 -->
+    <section id="contact" class="py-24 bg-dark-light relative">
+        <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-dark to-transparent"></div>
+        <div class="absolute left-0 bottom-0 w-96 h-96 bg-secondary/5 rounded-full filter blur-3xl"></div>
+        
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="max-w-3xl mx-auto text-center mb-16 reveal">
+                <h2 class="text-[clamp(1.8rem,5vw,3rem)] font-bold mb-6">联系我</h2>
+                <div class="w-20 h-1 bg-primary mx-auto mb-8"></div>
+                <p class="text-gray-300">
+                    如果您有项目合作、设计咨询还是其他问题，都欢迎与我联系，我会尽快回复您
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto">
+                <!-- 联系信息 -->
+                <div class="reveal">
+                    <div class="bg-dark p-8 rounded-xl h-full">
+                        <h3 class="text-2xl font-semibold mb-8">联系方式</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-start">
+                                <div class="bg-primary/10 p-3 rounded-lg mr-4">
+                                    <i class="fa fa-envelope text-primary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-1">邮箱</h4>
+                                    <p class="text-gray-400">暂定</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="bg-primary/10 p-3 rounded-lg mr-4">
+                                    <i class="fa fa-phone text-primary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-1">电话</h4>
+                                    <p class="text-gray-400">暂定</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <div class="bg-primary/10 p-3 rounded-lg mr-4">
+                                    <i class="fa fa-map-marker text-primary"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-1">微信</h4>
+                                    <p class="text-gray-400">暂定</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-12">
+                            <h4 class="font-medium mb-4">社交媒体</h4>
+                            <div class="flex space-x-4">
+                                <a href="#" class="bg-dark-light hover:bg-primary/20 text-gray-300 hover:text-primary w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                                    <i class="fa fa-behance"></i>
+                                </a>
+                                <a href="#" class="bg-dark-light hover:bg-primary/20 text-gray-300 hover:text-primary w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                                    <i class="fa fa-dribbble"></i>
+                                </a>
+                                <a href="#" class="bg-dark-light hover:bg-primary/20 text-gray-300 hover:text-primary w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                                    <i class="fa fa-instagram"></i>
+                                </a>
+                                <a href="#" class="bg-dark-light hover:bg-primary/20 text-gray-300 hover:text-primary w-10 h-10 rounded-full flex items-center justify-center transition-colors">
+                                    <i class="fa fa-linkedin"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 联系表单 -->
+                <div class="reveal">
+                    <form class="bg-dark p-8 rounded-xl">
+                        <h3 class="text-2xl font-semibold mb-8">发送消息</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label for="name" class="block text-sm font-medium text-gray-400 mb-2">姓名</label>
+                                <input type="text" id="name" class="w-full bg-dark-light border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" placeholder="您的姓名">
+                            </div>
+                            
+                            <div>
+                                <label for="email" class="block text-sm font-medium text-gray-400 mb-2">邮箱</label>
+                                <input type="email" id="email" class="w-full bg-dark-light border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" placeholder="您的邮箱">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="subject" class="block text-sm font-medium text-gray-400 mb-2">主题</label>
+                            <input type="text" id="subject" class="w-full bg-dark-light border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all" placeholder="消息主题">
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label for="message" class="block text-sm font-medium text-gray-400 mb-2">消息</label>
+                            <textarea id="message" rows="5" class="w-full bg-dark-light border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none" placeholder="请输入您的消息内容..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary w-full bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-all">
+                            发送消息 <i class="fa fa-paper-plane ml-2"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark py-12 border-t border-gray-800">
+        <div class="container mx-auto px-6 md:px-12">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <a href="#hero" class="text-2xl font-bold text-white flex items-center gap-2">
+                        <span class="text-primary"><i class="fa fa-cube"></i></span>
+                        <span>MediaCraft</span>
+                    </a>
+                    <p class="text-gray-400 mt-2">数字媒体创意设计师</p>
+                </div>
+                
+                <div class="text-gray-400 text-sm">
+                    © 2025 MediaCraft for HHL. 保留所有权利。
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // 圆形进度条加载动画
+        window.addEventListener('DOMContentLoaded', function() {
+            const circle = document.querySelector('.progress-ring-circle');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = circumference;
+            
+            // 2秒内完成进度条动画
+            const duration = 2000; // 2秒
+            const startTime = performance.now();
+            
+            function updateProgress(currentTime) {
+                const elapsedTime = currentTime - startTime;
+                const progress = Math.min(elapsedTime / duration, 1);
+                const offset = circumference - (progress * circumference);
+                
+                circle.style.strokeDashoffset = offset;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(updateProgress);
+                } else {
+                    // 动画完成后隐藏加载界面
+                    setTimeout(() => {
+                        document.getElementById('loader').classList.add('opacity-0', 'pointer-events-none');
+                        document.getElementById('loader').style.transition = 'opacity 0.5s ease-out';
+                    }, 300);
+                }
+            }
+            
+            requestAnimationFrame(updateProgress);
+        });
+        
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const navbar = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('nav-scrolled');
+            } else {
+                navbar.classList.remove('nav-scrolled');
+            }
+        });
+        
+        // 移动端菜单
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.remove('translate-x-full');
+        });
+        
+        document.getElementById('menu-close').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.add('translate-x-full');
+        });
+        
+        // 移动端菜单点击后关闭
+        document.querySelectorAll('#mobile-menu a').forEach(link => {
+            link.addEventListener('click', function() {
+                document.getElementById('mobile-menu').classList.add('translate-x-full');
+            });
+        });
+        
+        // 元素进入视口动画
+        function revealElements() {
+            const reveals = document.querySelectorAll('.reveal');
+            
+            for (let i = 0; i < reveals.length; i++) {
+                const windowHeight = window.innerHeight;
+                const elementTop = reveals[i].getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    reveals[i].classList.add('active');
+                }
+            }
+        }
+        
+        // 时间线元素进入视口动画
+        function revealTimeline() {
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            
+            for (let i = 0; i < timelineItems.length; i++) {
+                const windowHeight = window.innerHeight;
+                const elementTop = timelineItems[i].getBoundingClientRect().top;
+                const elementVisible = 200;
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    timelineItems[i].classList.add('active');
+                }
+            }
+        }
+        
+        window.addEventListener('scroll', revealElements);
+        window.addEventListener('scroll', revealTimeline);
+        window.addEventListener('load', revealElements);
+        window.addEventListener('load', revealTimeline);
+        
+        // 视频播放控制函数 - 修改版
+        function toggleVideo(container) {
+            const video = container.querySelector('.video-player');
+            const thumbnail = container.querySelector('.video-thumbnail');
+            const playButton = container.querySelector('.play-button');
+            const pauseOverlay = container.querySelector('.pause-overlay');
+            
+            // 如果视频未播放
+            if (video.paused) {
+                // 如果是首次播放（视频尚未显示）
+                if (video.style.display !== 'block') {
+                    // 显示视频，隐藏缩略图和初始播放按钮
+                    video.style.display = 'block';
+                    thumbnail.style.display = 'none';
+                    playButton.style.display = 'none';
+                    pauseOverlay.style.display = 'none';
+                    
+                    // 从头开始播放视频
+                    video.currentTime = 0;
+                    video.play();
+                } else {
+                    // 从暂停状态继续播放
+                    video.play();
+                    pauseOverlay.style.display = 'none';
+                }
+                
+                // 监听视频结束事件
+                video.onended = function() {
+                    // 视频结束后，恢复显示缩略图和初始播放按钮，隐藏视频和暂停覆盖层
+                    video.style.display = 'none';
+                    thumbnail.style.display = 'flex';
+                    playButton.style.display = 'flex';
+                    pauseOverlay.style.display = 'none';
+                };
+            } else {
+                // 如果视频正在播放，则暂停
+                video.pause();
+                // 显示暂停覆盖层和继续播放按钮
+                pauseOverlay.style.display = 'flex';
+            }
+        }
+    </script>
+
+
+    </body></html>
+    
